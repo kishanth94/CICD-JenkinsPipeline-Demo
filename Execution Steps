@@ -1,0 +1,70 @@
+Install Jenkins on Amazon Linux 2 instance:
+===========================================
+If java8 is not available, please follow below steps to install Java8 on Amazon Linux
+# sudo yum install java-1.8.0-openjdk
+# java -version
+Add the Jenkins repo
+# sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+Import the key file:
+# sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+Install Jenkins using the below command:
+# sudo yum install jenkins -y
+Start the Jenkins service:
+# sudo systemctl start jenkins
+# sudo systemctl enable jenkins
+Open the browser and hit the public IP along with the 8080 port.
+
+Make sure jenkins user is there on the master machine and its part of the sudo group:
+# cat /etc/passwd | grep jenkins
+# sudo usermod -aG wheel jenkins
+# groups jenkins
+
+Tomcat server setup:
+====================
+# yum install java-1.8.0-openjdk
+# java -version
+# which java
+# visudo
+ec2-user   ALL=(ALL)       NOPASSWD: ALL
+# cd /opt/
+# wget https://dlcdn.apache.org/tomcat/tomcat-8/v8.5.77/bin/apache-tomcat-8.5.77.tar.gz
+# tar -xvf apache-tomcat-8.5.77.tar.gz
+# mv apache-tomcat-8.5.77 tomcat8
+# rm -f apache-tomcat-8.5.77.tar.gz
+# chown -R ec2-user:ec2-user tomcat8/
+# cd tomcat8/bin/
+# ./startup.sh
+
+Go to Manage Jenkins --> Manage Credentials --> Click on Global --> Add credentials
+Click on Add credentials
+kind: SSH username with private key
+Username: ec2-user
+Private key: Copy the contents of key-pair (Ex: tomcat.pem file) belongs to tomcat server and paste it in this section for the jenkins server to communicate with tomcat server
+
+Note: http://public-ip-tomcat-server:8080
+
+Execute below steps in Jenkins master:
+======================================
+# yum install git -y
+# yum install java-1.8.0-openjdk-devel -y
+# copy below path and paste it in Manage Jenkins --> Global Tool configuration --> JDK Installations 
+Name: jdk8
+JAVA_HOME: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.312.b07-1.amzn2.0.2.x86_64/bin/javac
+
+Git installations
+Name: Default
+Path to Git executable: git
+
+Go to Manage Jenkins --> Global Tool configuration --> Under Maven Installations --> Click on add maven 
+Name: maven-3
+Enable the check-box "Install Automatically"
+Choose the latest version
+
+Go to Manage Jenkins --> Manage Plugins --> SSH Agent --> Click on Install without restart
+
+Note: http://public-ip-tomcat-server:8080/javawebapplication/
+
+Settings needs to be done for sending email notification from Jenkins:
+You must have to log into just one gmail account (the one you are using to send email).
+1. Then go to https://www.google.com/settings/security/lesssecureapps and Turn On this feature.
+2. And last go to https://accounts.google.com/DisplayUnlockCaptcha and click Continue.
